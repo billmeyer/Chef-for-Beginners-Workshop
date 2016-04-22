@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chef for Beginners - Module 2</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="chef-for-beginners.css">
+  </head>
+  <body>
+    <textarea id="source">
+name: inverse
+layout: true
+class: center, middle, inverse
+
+---
+
+# Chef Resources
+## Chef's Fundamental Building Blocks
+
+---
+layout: false
+
+# Objectives
+
+.right-column[
+After completing this module, you should be able to:
+
+* Use Chef to install packages on your virtual workstation
+* Use the __chef-apply__ command
+* Create a basic Chef recipe file
+* Define Chef Resources
+]
+
+???
+In this module you will learn how to install packages on a virtual workstation, use the 'chef-apply' command, create a basic Chef recipe file and define Chef Resources.
+
+---
+
+# Choose an Editor
+
+You'll need to choose an editor to edit files:
+
+* emacs
+* nano
+* vi / vim
+
+???
+During this workshop we are going to need our workstations to have an editor installed. There are at least three command-line editors that we can choose from on the Linux workstation: Emacs, Nano, or Vim.
+
+---
+
+# Linux Editor Reference
+
+Tips for using these editors can be found below:
+
+* __Nano__: (usually touted as the easiest editor to get started with editing through the command-line.)
+
+<pre>
+	OPEN FILE               $ nano FILENAME
+	WRITE (When exiting)    ctrl+x, y, ENTER
+	EXIT                    ctrl+x
+</pre>
+
+* __VIM__: (Vim, like vi, is more complex because of its different modes. )
+
+<pre>
+	OPEN FILE               $ vim FILENAME
+	START EDITING           i
+	WRITE FILE              ESC, :w
+	EXIT                    ESC, :q
+	EXIT (don't write)      ESC, :q!
+</pre>	
+
+---
+
+## Group Exercise: Find an Editor
+
+## How about Nano?
+
+```terminal
+$ which nano
+/usr/bin/which: no nano in (/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/home/chef/bin)
+```
+
+--
+
+## How about vim?
+
+```terminal
+$ which vim
+/usr/bin/which: no vim in (/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/home/chef/bin)
+```
+
+--
+
+## How about Emacs?
+
+```terminal
+$ which emacs
+/usr/bin/which: no emacs in (/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/home/chef/bin)
+```
+
+???
+It seems your workstation doesn't have any of the preferred command-line editors installed. So that means there is a little more configuration left for you to do.
+
+---
+
+# Learning Chef
+
+--
+.right-column[
+* One of the best ways to learn a technology is to apply the technology in every situation that it can be applied.
+]
+--
+.right-column[
+* A number of Chef tools are installed on the system so lets put them to use.
+]
+
+???
+
+But before you figure out the Linux distribution and start installing packages through the 
+distribution's specific package manager, this seems like a perfect opportunity to experiment with 
+how to solve configuration problems with Chef.
+
+---
+template: inverse
+
+# What is __chef-apply__?
+
+--
+
+__chef-apply__ is a command-line application that allows us to work with resources and recipes files.
+
+???
+
+The first tool we will explore is `chef-apply`. It is a command-line application that allows us to 
+work with resources and recipes files.
+
+---
+
+# What can __chef-apply__ do?
+
+```bash
+$ sudo chef-apply --help
+```
+```terminal
+Usage: chef-apply [RECIPE_FILE | -e RECIPE_TEXT | -s] [OPTIONS]
+        --[no-]color                 Use colored output, defaults to enabled
+    -e, --execute RECIPE_TEXT        Execute resources supplied in a string
+        --force-formatter            Use formatter output instead of logger output
+        --force-logger               Use logger output instead of formatter output
+    -F, --format FORMATTER           output format to use
+    -j JSON_ATTRIBS,                 Load attributes from a JSON file or URL
+        --json-attributes
+    -l, --log_level LEVEL            Set the log level (debug, info, warn, error, fatal)
+        --minimal-ohai               Only run the bare minimum ohai plugins chef needs to function
+        --[no-]profile-ruby          Dump complete Ruby call graph stack of entire Chef run (expert only)
+    -s, --stdin                      Execute resources read from STDIN
+    -v, --version                    Show chef version
+    -W, --why-run                    Enable whyrun mode
+    -h, --help                       Show this message
+```
+
+???
+
+Run the chef-apply application on the workstation with the "--help" flag to learn more about it.
+
+Reading the output you may be left with more questions. Like what is recipe file? What is recipe text?
+What are resources?
+
+Let us start answering those questions by looking at Chef's documentation.
+
+---
+
+# Resources
+
+--
+.right-column[
+* A resource is a statement of configuration policy.
+]
+--
+.right-column[
+* It describes the desired state of an element of your infrastructure and the steps 
+needed to bring that item to the desired state.
+
+.footnote[[https://docs.chef.io/resources.html]()]
+]
+
+???
+
+First, let's look at Chef's documentation about resources. Visit the docs page on resources and read 
+the first three paragraphs.
+
+Afterwards, let us look at a few examples of resources.
+
+Instructor Note: This may sound unusual to ask people to read the documentation site but 
+it is important that they learn to refer to the documentation. This page in an important reference page.
+---
+
+# Example: Package
+
+.right-column[
+
+```ruby
+package 'httpd'
+```
+
+The package named `httpd` is installed.
+
+.footnote[[https://docs.chef.io/resource_package.html]()]
+]
+
+???
+
+Here is an example of the package resource. The package named 'httpd' is installed.
+
+Instructor Note: The default action for the package resource is create. When you do not specify 
+an action or attributes you can define it without the do and end block.
+
+---
+
+# Example: Service
+
+.right-column[
+```ruby
+service 'ntp' do
+  action [ :enable, :start ]
+end
+```
+
+The service named __ntp__ is enabled (start on reboot) and started.
+
+.footnote[[https://docs.chef.io/resource_service.html]()]
+]
+
+???
+In this example, the service named 'ntp' is enabled and started.
+
+Instructor Note: Service resources are often defined with two actions. The action method 
+can only take one parameter so to provide two actions you need to specify the two actions within an Array.
+
+---
+
+# Example: File
+
+.right-column[
+```ruby
+file '/etc/motd' do
+  content 'This computer is the property ...'
+end
+```
+
+The file name `/etc/motd` is created with content '__This company is the property ...__'
+
+.footnote[[https://docs.chef.io/resource_file.html]()]
+]
+
+???
+In this example, the file named '/etc/motd' is created with content '__This company is the property...__'.
+
+Instructor Note: The default action for the file resource is to create the file.
+
+---
+
+# Example: File
+
+.right-column[
+```ruby
+file '/etc/php.ini.default' do
+  action :delete
+end
+```
+
+The file name `/etc/php.ini.default` is deleted.
+
+.footnote[[https://docs.chef.io/resource_file.html]()]
+]
+
+???
+In this example, the file named '/etc/php.ini.default' is deleted.
+
+Instructor Note: A resource's default action is based on the principle of least surprise. 
+So they are often creative actions towards the system. This is why the file resource specified 
+here has the action specified. It is not the default action.
+
+---
+
+## Group Exercise: Using the –e Execute Option
+
+```bash
+$ sudo chef-apply --help
+```
+```terminal
+Usage: chef-apply [RECIPE_FILE | -e RECIPE_TEXT | -s] [OPTIONS]
+        --[no-]color                 Use colored output, defaults to enabled
+*   -e, --execute RECIPE_TEXT        Execute resources supplied in a string
+        --force-formatter            Use formatter output instead of logger output
+        --force-logger               Use logger output instead of formatter output
+    -F, --format FORMATTER           output format to use
+    -j JSON_ATTRIBS,                 Load attributes from a JSON file or URL
+        --json-attributes
+    -l, --log_level LEVEL            Set the log level (debug, info, warn, error, fatal)
+        --minimal-ohai               Only run the bare minimum ohai plugins chef needs to function
+        --[no-]profile-ruby          Dump complete Ruby call graph stack of entire Chef run (expert only)
+    -s, --stdin                      Execute resources read from STDIN
+    -v, --version                    Show chef version
+    -W, --why-run                    Enable whyrun mode
+    -h, --help                       Show this message
+```
+
+???
+
+Let's return to the `chef-apply` command. It looks like you can supply a resource or resources, 
+in a string or text, with the -e flag.
+
+Editors are software and software is delivered to our system through packages. So it seems like 
+you could use the package resource to install our preferred editor.
+
+---
+
+## Group Exercise: Install nano, emacs or vim
+
+```bash
+$ sudo chef-apply -e "package 'nano'"
+```
+```terminal
+Recipe: (chef-apply cookbook)::(chef-apply recipe)
+  * yum_package[nano] action install
+    <span style="color:green;">- install version 2.0.9-7.el6 of package nano</span>
+```
+
+???
+
+Install the editor package of your choice.
+
+In this example we are choosing to install the nano package which installs the nano editor.
+
+You are invited to change the value here to install the editor of your choice.
+
+---
+
+## Group Exercise: Did I install my editor?
+
+```bash
+$ which nano
+/bin/nano
+```
+
+???
+
+Verify that the editor is installed by again using the `which` command followed by either nano, emacs or vim.
+
+The 'which' command reports where it was able to find the executable.
+
+---
+
+## Group Exercise: Test and Repair
+
+.right-column[
+* What would happen if you ran the installation command again?
+]
+--
+.right-column[
+* What would happen if the package were to become uninstalled?
+]
+
+???
+
+sudo chef-apply -e "package ['nano'] do action :remove end"
+
+What would happen if you ran the installation command again? Before you execute the command think 
+about what will happen. Think about what you would want to happen. Look at the output from the 
+previous execution. Then take a guess. Write it down or type out what you think will happen. 
+Then execute the command again.
+
+What would happen if the package were to become uninstalled? What would the output be if you 
+ran installation command again? Was there a situation where the package was already uninstalled 
+and we executed this resource text?
+
+---
+
+# Test and Repair
+
+.right-column[
+* __chef-apply__ takes action only when it needs to. Think of it as test and repair.
+
+* Chef looks at the current state of each resource and takes action only when that resource is out of policy.
+]
+
+???
+
+Hopefully it is clear from running the `chef-apply` command a few times that the resource we 
+defined only takes action when it needs to take action.
+
+We call this test and repair. Test and repair means the resource first tested the system 
+before it takes action.
+
+---
+
+class: center, middle
+<img style="width:100%" src="images/Test%20and%20Repair.png">
+
+???
+If the package is already installed, then the resource does not need to take action.
+
+If the package is not installed, then the resource NEEDS to take action to install that package.
+
+---
+
+## Group Exercise: Hello, World?
+
+.right-column[
+_"I heard Chef is written in Ruby. If that's the case its required that we write a quick "Hello, world!" application."_
+]
+--
+.right-column[
+## Objective:
+
+* Create a recipe file that defines the policy,
+* The file named `hello.txt` is created with the content "Hello, world!".
+]
+
+???
+Great! You installed an editor using `chef-apply` but we missed a very important step.
+
+Chef is written in Ruby. Ruby is a programming language and it is required that the first program you write in a programming language is 'Hello World'.
+
+So let's walk through creating a recipe file that creates a file named 'hello.txt' with the contents 'Hello world!'.
+
+---
+
+## Group Exercise: Create and Open a Recipe File
+
+```bash
+$ cd ~
+$ nano hello.rb
+```
+
+???
+
+Using your editor open the file named 'hello.rb'. 'hello.rb' is a recipe file. It has the extension '.rb' because it is a ruby file.
+
+---
+
+## Group Exercise: Create a Recipe File Named __hello.rb__
+
+Edit `~/hello.rb`
+
+```ruby
+file 'hello.txt' do
+  content 'Hello, world!'
+end
+```
+
+The file named `hello.txt` is created with the content 'Hello, world!'
+
+.footnote[[https://docs.chef.io/resources.html]()]
+
+???
+
+1. Add the resource definition displayed above. We are defining a resource with the type called 'file' and named 'hello.txt'. We also are stating what the contents of that file should contain 'Hello, world!'.
+
+2. Save the file and return to the terminal and the `chef-apply` command.
+
+Instructor Note: The default action is to create the file.
+
+---
+
+## Group Exercise: Can __chef-apply__ Run a Recipe File?
+
+```bash
+$ sudo chef-apply --help
+```
+```terminal
+*Usage: chef-apply [RECIPE_FILE | -e RECIPE_TEXT | -s] [OPTIONS]
+        --[no-]color                 Use colored output, defaults to enabled
+    -e, --execute RECIPE_TEXT        Execute resources supplied in a string
+        --force-formatter            Use formatter output instead of logger output
+        --force-logger               Use logger output instead of formatter output
+    -F, --format FORMATTER           output format to use
+    -j JSON_ATTRIBS,                 Load attributes from a JSON file or URL
+        --json-attributes
+    -l, --log_level LEVEL            Set the log level (debug, info, warn, error, fatal)
+        --minimal-ohai               Only run the bare minimum ohai plugins chef needs to function
+        --[no-]profile-ruby          Dump complete Ruby call graph stack of entire Chef run (expert only)
+    -s, --stdin                      Execute resources read from STDIN
+    -v, --version                    Show chef version
+    -W, --why-run                    Enable whyrun mode
+    -h, --help                       Show this message
+```
+
+???
+
+If you were to use '--help' flag again, it looks like you can provide a recipe file directly to the `chef-apply` command.
+
+---
+
+## Group Exercise: Apply a recipe file
+
+```bash
+$ sudo chef-apply hello.rb
+```
+```terminal
+Recipe: (chef-apply cookbook)::(chef-apply recipe)
+  * file[hello.txt] action create
+    <span style="color:green;">- create new file hello.txt</span>
+    <span style="color:green;">- update content in file hello.txt from none to 315f5b</span>
+    <span style="color:gray;">--- hello.txt	2016-04-11 15:01:29.875000726 +0000</span>
+    <span style="color:gray;">+++ ./.hello.txt20160411-7152-1d3f0yn	2016-04-11 15:01:29.875000726 +0000</span>
+    <span style="color:gray;">@@ -1 +1,2 @@</span>
+    <span style="color:gray;">+Hello, world!</span>
+```
+
+???
+
+Type the specified command to apply the recipe file. You should see that a file named 'hello.txt' was created and the contents updated to include your 'Hello, world!' text.
+
+Instructor Note: The output that shows the contents of the file have been modified is being displayed in a format similar to a git diff (http://stackoverflow.com/questions/2529441/how-to-read-the-output-from-git-diff).
+
+---
+## Group Exercise: What does `hello.txt` say?
+
+```bash
+$ cat hello.txt
+Hello, world!
+```
+
+???
+
+Lets look at the contents of the 'hello.txt' file to prove that it was created and the contents of file is what we wrote in the recipe. The result of the command should show you the contents 'Hello, world!'.
+
+---
+
+## Group Exercise: Test and Repair
+
+.right-column[
+* What would happen if you ran the command again?
+]
+
+--
+
+.right-column[
+* What would happen if the file contents were modified?
+]
+
+--
+
+.right-column[
+* What would happen if the file were removed?
+]
+
+???
+
+And, of workshop, what would happen if the file was removed?
+
+At this point you hopefully you are starting to understand the concept of test and repair.
+
+--
+
+.right-column[
+* What would happen if the file permissions (mode), owner, or group changed?
+
+	* Have we defined a policy for these attributes?
+]
+
+???
+
+What would happen if the file permissions, owner or group of the file changed? In the resource that we defined have we specified the values that we desired in our policy.
+
+Instructor Note: The learner is encouraged to change the file permissions, owner, and group here but it is not required. From the resource definition they have not set any of these attributes so Chef is relying on the default values provided by the file resource. This prepares them for the next exercise.
+---
+# Resource Definition
+
+.right-column[
+```ruby
+file 'hello.txt' do
+  content 'Hello, world!'
+end
+```
+
+The .typeColor[TYPE] named .nameColor[NAME] should be __ACTION'd__ with .attributesColor[ATTRIBUTES]
+]
+
+???
+
+Let's take a moment and talk about the structure of a resource definition. We'll break down the 
+resource that we defined in our recipe file.
+
+---
+# Resource Definition
+
+.right-column[
+```terminal
+<span style="color: #6BB2E2;text-decoration: underline;">file</span> 'hello.txt' do
+  content 'Hello, world!'
+end
+```
+
+The .typeColor[TYPE] named .nameColor[NAME] should be __ACTION'd__ with .attributesColor[ATTRIBUTES]
+]
+--
+
+.right-column[
+##Example Resource Types:
+
+cron, 
+directory, 
+dsc_resource, 
+dsc_script, 
+env, 
+file, 
+git, 
+group, 
+ifconfig, 
+link, 
+log, 
+mdadm, 
+mount, 
+package, 
+reboot, 
+registry_key, 
+remote_directory, 
+remote_file, 
+route, 
+script, 
+service, 
+template, 
+user, 
+windows_package, 
+windows_service and more...
+]
+
+???
+
+The first element of the resource definition is the resource type. In this instance the type is 'file'. Earlier we used 'package'. We showed you an example of 'service'.
+
+---
+
+# Resource Definition
+
+.right-column[
+```terminal
+<span style="color: #6BB2E2;text-decoration:underline;">file</span> '<span style="color: #5AB7B2;text-decoration:underline;">hello.txt</span>' do
+  content 'Hello, world!'
+end
+```
+
+The .typeColor[TYPE] named .nameColor[NAME] should be __ACTION'd__ with .attributesColor[ATTRIBUTES]
+]
+
+???
+The second element is the name of the resource. This is also the first parameter being passed to the resource.
+
+In this instance the resource name is also the relative file path to the file we want created. We could have specified a fully-qualified file path to ensure the file was written to the exact same location and not dependent on our current working directory.
+
+---
+
+# Resource Definition
+
+.right-column[
+```terminal
+<span style="color: #6BB2E2;text-decoration:underline;">file</span> '<span style="color: #5AB7B2;text-decoration:underline;">hello.txt</span>' do
+  <span style="color: #FDB714;text-decoration:underline;">content 'Hello, world!'</span>
+end
+```
+
+The .typeColor[TYPE] named .nameColor[NAME] should be __ACTION'd__ with .attributesColor[ATTRIBUTES]
+]
+
+???
+
+The `do` and `end` keywords here define the beginning of a ruby block. The ruby block and all the contents of it are the second attributes to our resource.
+
+The contents of this block contains attributes (and other things) that help describe the state of the resource. In this instance, the content attribute here specifies the contents of the file.
+
+Attributes are laid out with the name of the attributes followed by a space and then the value for the attribute.
+
+---
+
+# Resource Definition
+
+.right-column[
+```terminal
+<span style="color: #6BB2E2;text-decoration:underline;">file</span> '<span style="color: #5AB7B2;text-decoration:underline;">hello.txt</span>' do
+  <span style="color: #FDB714;text-decoration:underline;">content 'Hello, world!'</span>
+end
+```
+
+The .typeColor[TYPE] named .nameColor[NAME] should be __ACTION'd__ with .attributesColor[ATTRIBUTES]
+
+_*SO WHAT IS __ACTION'd__?*_
+]
+
+???
+The interesting part is that there is no action defined. And if you think back to the previous examples 
+that we showed you, not all of the resources have defined actions.
+
+So what action is the resource taking? How do you know?
+
+---
+
+# Lab 2.1: The __file__ Resource
+
+.right-column[
+* Read [https://docs.chef.io/resource_file.html]()
+
+* Discover the file resource's:
+	* default action.
+	* default values for mode, owner, and group.
+
+* Update the file policy in `hello.rb` as follows:
+	* The file named 'hello.txt' should be created with...
+		* the content set to 'Hello, world!',
+		* the mode set to '0644',
+		* the owner is 'root',
+		* and the group is 'root'.
+]
+
+???
+
+Could you find that information in the documentation for the file resource?
+
+1. Read through the file Resource documentation.
+2. Find the list of actions and then see if you can find the default one.
+3. Find the list of attributes and find the default values for mode, owner, and group.
+
+The reason for doing this is that we want you to return to the file resource in the the recipe file and add the action, if necessary, and attributes for mode, owner and group.
+
+Instructor Note: Allow 10 minutes to complete this exercise.
+
+---
+# Lab 2.1: The Updated __file__ Resource
+
+`~/hello.rb`
+
+```ruby
+file 'hello.txt' do
+  content 'Hello, world!'
+  mode '0644'
+  owner 'root'
+  group 'root'
+  action :create
+end
+```
+
+* The default mode is set by the POSIX Access Control Lists.
+* The default owner is the current user (could change).
+* The default group is the POSIX group (if available).
+* The default action is to create (not necessary to define it).
+
+???
+The file resources default action is to create the file. So if that is the policy we want our system to adhere to then we don't need to specify it. It doesn't hurt if you do, but you will often find when it comes to default values for actions we tend to save ourselves the keystrokes and forgo expressing them.
+
+The file resource in the recipe may or may not need to specify the three attributes: mode; owner; and group.
+
+The mode default value for this Operating System is '0644'. That value could change depending on the Operating System we are currently running.
+The default owner is the current user. That value could change depending on who applies this policy.
+The default group is the POSIX group. In this instance this will be root. This could change depending on the system.
+
+---
+
+# Lab 2.2: __workstation__ Setup Recipe
+
+.right-column[
+Create a recipe file named `setup.rb` that defines the policy:
+
+* The package named __nano__ is installed.
+* The package named __tree__ is installed.
+* The file named `/etc/motd` is created with the content 'Property of ...'.
+
+Use __chef-apply__ to apply the recipe file named `setup.rb`
+]
+
+???
+Now that you've practiced:
+
+* Installing an application with the package resource
+* Creating a recipe file
+* Creating a file with the file resource
+
+Create a recipe that defines the following resource as its policy. When you are done defining the policy apply the policy to the system.
+
+Instructor Note: Allow 15 minutes to complete this exercise.
+
+---
+# Lab 2.2: __workstation__ Setup Recipe File
+
+`~/setup.rb`
+
+```ruby
+package 'nano'
+package 'vim'
+package 'emacs'
+
+package 'tree'
+
+file '/etc/motd' do
+  content 'Property of ...'
+end
+```
+
+* The package named __nano__ is installed.
+* The package named __tree__ is installed.
+* The file named `/etc/motd` is created with the content 'Property of ...'.
+
+???
+Here is a version of the recipe file that installs all the editors, our tree package, and creates the message-of -the-day file.
+---
+
+# Lab 2.2: Apply the Setup Recipe
+
+```bash
+$ sudo chef-apply setup.rb
+```
+```terminal
+Recipe: (chef-apply cookbook)::(chef-apply recipe)
+  * yum_package[nano] action install
+    <span style="color:green;">- install version 2.0.9-7.el6 of package nano</span>
+  * yum_package[vim] action install
+    <span style="color:green;">- install version 7.4.629-5.el6 of package vim-enhanced</span>
+  * yum_package[emacs] action install
+    <span style="color:green;">- install version 23.1-28.el6 of package emacs</span>
+  * yum_package[tree] action install
+    <span style="color:green;">- install version 1.5.3-3.el6 of package tree</span>
+  * file[/etc/motd] action create
+    <span style="color:green;">- update content in file /etc/motd from e3b0c4 to d100eb</span>
+    <span style="color:gray;">--- /etc/motd	2013-06-07 09:31:32.000000000 -0500</span>
+    <span style="color:gray;">+++ /etc/.chef-motd20160404-20599-3b66qa	2016-04-04 08:01:19.673005668 -0500</span>
+    <span style="color:gray;">@@ -1 +1,2 @@</span>
+    <span style="color:gray;">+Property of ...</span>
+```    
+???
+This is how you apply the created recipe.
+
+---
+
+# Discussion
+
+.right-column[
+* What is a resource?
+]
+--
+.right-column[
+* What are some other possible examples of resources?
+]
+--
+.right-column[
+* How did the example resources we wrote describe the desired state of an element of our infrastructure?
+]
+--
+.right-column[
+* What does it mean for a resource to be a statement of configuration policy?
+]
+
+---
+
+# Q&A
+
+.right-column[
+What questions can we answer for you?
+
+* __chef-apply__
+* Resources
+* Resource - default actions and default attributes
+* Test and Repair
+]
+
+---
+# On to [Module 3](Chef for Beginners - Module 3.html)
+<center><img style="width:70%"  src="images/logo.svg"></center>
+
+    </textarea>
+    <div id="slideshow"></div>
+    <div id="overlay"></div>
+
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js""></script>
+
+    <script type="text/javascript">
+      var hljs = remark.highlighter.engine;
+    </script>
+
+    <script src="terminal.language.js"></script>
+
+	<script src="init-remark.js"></script>
+  </body>
+</html>

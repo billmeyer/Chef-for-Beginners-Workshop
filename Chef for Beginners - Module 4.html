@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chef for Beginners - Module 4</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="chef-for-beginners.css">
+  </head>
+  <body>
+    <textarea id="source">
+name: inverse
+layout: true
+class: center, middle, inverse
+
+---
+
+# chef-client
+## Applying Recipes from Cookbooks
+
+---
+layout: false
+
+# Objectives
+
+.right-column[
+After completing this module, you should be able to use __chef-client__ to:
+
+* Locally apply a cookbook's recipe with __chef-client__.
+* Locally apply multiple cookbooks' recipes with __chef-client__.
+* Include a recipe from within another recipe. 
+]
+
+???
+
+In this module you will learn how to use the __chef-client__ command to apply recipes, and include a recipe within another recipe.
+
+---
+
+# chef-apply
+
+.right-column[
+* __chef-apply__ is a great tool for applying resources (-e) and for individual recipes but it doesn't know how to apply a cookbook.
+
+.footnote[[https://docs.chef.io/ctl_chef_apply.html]()]
+]
+
+???
+
+__chef-apply__ is valuable tool for exploring resources within recipes without having to wrestle with all the folders and files associated with cookbooks. For the remainder of the modules we will not return to using 'chef-apply'. In the future you will most likely be using __chef-client__. You may return to 'chef-apply' in your adventures when you find yourself wanting to test out an idea for a new recipe on a new platform or platform version. The speed of the tool is valuable.
+
+---
+
+# chef-client
+
+.right-column[
+* __chef-client__ is an agent that runs locally on every node that is under management by Chef. 
+
+* When a __chef-client__ is run, it will perform all of the steps that are required to bring the node into the expected state.
+
+.footnote[[https://docs.chef.io/chef_client.html]()]
+]
+
+???
+In the ChefDK, we package another tool that is called __chef-client__.
+
+__chef-client__ is a command-line application that can be used to apply a recipe or multiple recipes. It also has the ability to communicate with a Chef server – a concept we will talk about in another section. For now think of the Chef Server as a central, artifact repository where we will later store our cookbooks.
+
+---
+
+## --local-mode
+
+.right-column[
+* __chef-client__'s default mode attempts to contact a Chef Server and ask it for the recipes to run for the given node. 
+
+* We are overriding that behavior to have it work in a local mode.
+]
+
+???
+Applying recipes with __chef-client__ is different than 'chef-apply' and that is because chef-client's default behavior is to communicate with a Chef server. So we use the '--local-mode' flag to ask __chef-client__ to look for the cookbooks locally.
+
+---
+
+## -r "recipe[_cookbook-name_::_recipe-name_]"
+
+.right-column[
+* In local mode, we need to provide a list of recipes to apply to the system. This is called a run list. A run list is an ordered collection of recipes to execute.
+
+* Each recipe in the run list must be addressed with the format __recipe[_cookbook-name_::_recipe-name_]__.
+]
+
+???
+
+When we apply a recipe with __chef-client__, we define a run list. This is an ordered list of recipes that we want to apply to the system. When you define a recipe from a cookbook on the run list, there is a particular convention:
+
+"recipe[COOKBOOK::RECIPE]"
+
+COOKBOOK means the name of the Cookbook.
+RECIPE means the name of the Recipe without the Ruby file extension.
+
+---
+## -r "recipe[_cookbook-name(_::default_)_]"
+
+.right-column[
+* When you are referencing the default recipe within a cookbook you may optionally specify only the name of the cookbook. 
+
+* __chef-client__ understands that you mean to apply the default recipe from within that cookbook.
+]
+
+???
+
+Actually, we didn't tell you everything about specifying the run list for the `chef-client` command.
+
+When defining a recipe in the run list you may omit the name of the recipe, and only use the cookbook name, when that recipe's name is 'default'.
+
+Similar to how resources have default actions and default attributes Chef uses the concept of providing sane defaults. This makes our faster when we understand the concepts.
+
+A cookbook doesn't have to have a default recipe but most every cookbook has one. It's called default because when you think of a cookbook it is the recipe that defines the most common configuration policy.
+
+When you think about the two cookbooks that we created -- the apache cookbook with the server recipe and the workstation cookbook with the setup recipe -- it seems like those recipes would be good default recipes for their respective cookbooks.
+
+---
+
+## Example Usage
+
+Using __chef-client__ to locally apply the __setup__ recipe from 
+the __workstation__ cookbook.
+
+```bash
+$ sudo chef-client --local-mode –r "recipe[workstation::setup]"
+```
+```terminal
+Applying the following recipes locally:
+  The 'setup' recipe from the 'workstation' cookbook
+```
+
+???
+
+Here is an example of using __chef-client__ to locally apply the a run list of recipes. In this case we are applying one recipe and that is the setup recipe within our workstation cookbook.
+
+Instructor Note: These commands if executed by a learner at this point will not work. These are being displayed solely as demonstration.
+
+---
+
+## Example Usage
+
+Using __chef-client__ to locally apply the __server__ recipe from 
+the __apache__ cookbook.
+
+```bash
+$ sudo chef-client --local-mode -r "recipe[apache::server]"
+```
+```terminal
+Applying the following recipes locally:
+  The 'server' recipe from the 'apache' cookbook
+```
+
+???
+
+Here is an example of using __chef-client__ to locally apply the server recipe within our apache cookbook.
+
+---
+
+## Example Usage
+
+Using __chef-client__ to locally apply multiple recipes from multiple cookbooks.
+
+
+```bash
+$ sudo chef-client --local-mode \ 
+  -r "recipe[workstation::setup],recipe[apache::server]"
+```
+```terminal
+Applying the following recipes locally:
+  * The 'setup' recipe from the 'workstation' cookbook
+  * The 'server' recipe from the 'apache' cookbook
+```
+
+???
+
+Here is an example of using __chef-client__ to locally apply two recipes -- the setup recipe from the workstation cookbook and the server recipe within our apache cookbook.
+
+Instructor Note: The command given here includes the backslash '\'. That allows you to specify multiple lines within a terminal. Because of the character limitation of slides it is included to make the command more clear to the learner.
+
+Instructor Note: It is important to note that when specifying a run list, recipes defined within it that are separated with a comma should NOT have a space after the comma or it will create an error.
+
+---
+
+## Group Exercise: Return Home First
+
+```bash
+$ cd ~
+```
+
+???
+
+Before you start applying cookbooks through __chef-client__, make sure you are in your home directory.
+
+---
+
+## Group Exercise: Apply the __apache__::__server__ Recipe Locally
+
+```bash
+$ sudo chef-client --local-mode -r "recipe[apache::server]"
+```
+```terminal
+[2015-09-15T14:52:45+00:00] WARN: No config file found or specified on command line, using command line options.
+[2015-09-15T14:52:45+00:00] WARN: No cookbooks directory found at or above current directory.  Assuming /home/chef.
+Starting Chef Client, version 12.3.0
+resolving cookbooks for run list: ["apache::server"]
+
+================================================================================
+Error Resolving Cookbooks for Run List:
+================================================================================
+```
+
+--
+
+# <center><img src="images/explosion.gif"> __FAIL__ <img src="images/explosion.gif"></center>
+???
+
+Try applying our server recipe from the apache cookbook using `chef-client` in local mode.
+Upon execution you unfortunately are presented with an error. 
+When executed we find that `chef-client` has an additional requirement. 
+
+** `chef-client` expects our cookbooks to be maintained in a directory named 'cookbooks'. **
+
+That seems simple enough to accommodate and a good way to start organizing the cookbooks that we are creating.
+
+Instructor Note: This is suppose to fail. chef-client requires the cookbooks to be in a 
+cookbooks directory. The second warning message tells the user of the application that it 
+was unable to find a cookbooks directory.
+
+Instructor Note: The other warning about 'No config file found or specified on command line, 
+using command line options' is looking for a config file at a default location, which we 
+have not created nor we will create one at this time. There is a flag '-c' that allows you 
+to specify a configuration file as well. But again specifying the configuration file will 
+be automatically when the instance is bootstrapped.
+
+---
+
+## Group Exercise: Create a __cookbooks__ directory
+
+* __chef-client__ requires the cookbooks to be in a __cookbooks__ directory located in the user's _home directory_.
+
+```bash
+$ cd ~
+$ mkdir cookbooks
+$ mv workstation cookbooks
+$ mv apache cookbooks
+```
+
+???
+
+Make a directory named 'cookbooks'. Then move the workstation cookbook and apache cookbook into the cookbooks directory.
+
+---
+
+## Group Exercise: Apply the __apache__::__server__ Recipe Locally
+
+```bash
+$ sudo chef-client --local-mode -r "recipe[apache::server]"
+```
+```terminal
+[2015-09-15T14:54:45+00:00] WARN: No config file found or specified on command line, using command line options.
+Starting Chef Client, version 12.3.0
+resolving cookbooks for run list: ["apache::server"]
+Synchronizing Cookbooks:
+  - apache
+Compiling Cookbooks...
+Converging 4 resources
+Recipe: apache::server
+  * yum_package[httpd] action install (up to date)
+  * file[/var/www/html/index.html] action create (up to date)
+  * service[httpd] action enable (up to date)
+```
+
+???
+
+Lets try that again--this time with all of our cookbooks in the cookbooks directory like `chef-client` expects.
+
+Try applying the apache cookbook's recipe named server.
+
+Instructor Note: The WARN messages were omitted from this output so you can see the converging resources.
+
+---
+
+## Group Exercise: Apply the __workstation__::__setup__ Recipe Locally
+
+```bash
+$ sudo chef-client --local-mode -r "recipe[workstation::setup]"
+```
+```terminal
+[2015-09-15T15:15:26+00:00] WARN: No config file found or specified on command line, using command line options.
+Starting Chef Client, version 12.3.0
+resolving cookbooks for run list: ["workstation::setup"]
+Synchronizing Cookbooks:
+  - workstation
+Compiling Cookbooks...
+Converging 6 resources
+Recipe: workstation::setup
+  * yum_package[nano] action install (up to date)
+  * yum_package[vim] action install (up to date)
+  * yum_package[emacs] action install (up to date)
+```
+
+???
+
+Try applying the workstation cookbook's recipe named 'setup'.
+
+---
+
+## Group Exercise: Apply Both Recipes Locally
+
+```bash
+$ sudo chef-client --local-mode \ 
+  -r "recipe[apache::server],recipe[workstation::setup]"
+```
+
+```terminal
+[2015-09-15T15:17:27+00:00] WARN: No config file found or specified on command line, using command line options.
+Starting Chef Client, version 12.3.0
+resolving cookbooks for run list: ["apache::server","workstation::setup"]
+Synchronizing Cookbooks:
+  - apache
+  - workstation
+Compiling Cookbooks...
+
+Running handlers:
+[2015-09-15T15:17:30+00:00] ERROR: Running exception handlers
+Running handlers complete
+```
+
+???
+Try applying both recipes from both cookbooks again at one time.
+
+Instructor Note: It is important to note that when specifying a run list, recipes defined within it that are separated with a comma should NOT have a space after the comma or it will create an error.
+
+---
+## include_recipe
+
+.right-column[
+* A recipe can include one (or more) recipes located in cookbooks by using the `include_recipe` method.
+* When a recipe is included, the resources found in that recipe will be inserted (in the same exact order) at the 
+point where the `include_recipe` keyword is located. 
+
+.footnote[[https://docs.chef.io/recipes.html#include-recipes]()]
+]
+
+???
+A simple solution would be to rename the setup recipe to the default recipe. However, a better practice would instead leave our recipes as they are and have the default recipe include the recipes with a method called `include_recipe`
+
+This allows us to maintain all the current policies within its own recipe file and that way we can more easily switch our cookbooks default behavior, which can be useful when new requirements surface.
+
+---
+
+## Example Usage: Including a Recipe
+
+Include the __setup__ recipe from the __workstation__ cookbook in this recipe.
+
+```ruby
+include_recipe 'workstation::setup'
+```
+
+???
+
+In this example we are including the 'workstation' cookbook's 'setup' recipe.
+
+---
+
+## Example Usage: Including a recipe
+
+Include the __server__ recipe from the __apache__ cookbook in this recipe.
+
+```ruby
+include_recipe 'apache::server'
+```
+
+???
+
+In this example, we are including the 'apache' cookbook's 'server' recipe.
+
+---
+
+## Group Exercise: The __default__ recipe includes the __setup__ recipe
+
+`~/cookbooks/workstation/recipes/default.rb`
+
+```ruby
+#
+# Cookbook Name:: workstation
+# Recipe:: default
+#
+# Copyright (c) 2015 The Authors, All Rights Reserved.
+
+include_recipe 'workstation::setup'
+```
+
+???
+
+We are interested in having the default recipe for our workstation cookbook run the contents of the setup recipe.
+
+Within the default recipe, define the `include_recipe` method and provide one parameter, which is the name of our recipe as it appears within a run list: cookbook_name::recipe_name.
+
+---
+
+## Group Exercise: Apply the cookbook's __default__ recipe
+
+```bash
+$ sudo chef-client --local-mode -r "recipe[workstation]"
+```
+```terminal
+ WARN: No config file found or specified on command line, using command line options.
+Starting Chef Client, version 12.3.0
+resolving cookbooks for run list: ["workstation"]
+Synchronizing Cookbooks:
+  - workstation
+Compiling Cookbooks...
+Converging 0 resources
+
+Running handlers:
+Running handlers complete
+Chef Client finished, 0/0 resources updated in 3.300489827 seconds
+```
+
+???
+
+Use __chef-client__ to locally apply the cookbook named workstation. This will load your workstation cookbook's default recipe, which in turn loads the workstation cookbook's setup recipe.
+
+---
+
+## Group Exercise: Commit Your Work
+
+```bash
+$ cd workstation
+$ git add .
+$ git commit -m "Default recipe includes the setup recipe"
+```
+
+???
+With everything working it is time to commit the latest changes.
+
+---
+
+## Lab: Update the __apache__ Cookbook
+
+.right-column[
+* Update the __apache__ cookbook's __default__ recipe to:
+
+>>* Include the __server__ recipe from the __apache__ cookbook
+
+* Run __chef-client__ and locally apply the run list: __recipe[apache]__
+* Commit the changes with version control
+]
+
+???
+
+In this lab you will update the apache cookbook's default recipe to include the apache cookbook's recipe named server.
+
+Instructor Note: Allow 5 minutes to complete this exercise.
+
+---
+## Lab: The __default__ recipe includes the __apache__ recipe
+
+`~/cookbooks/apache/recipes/default.rb`
+
+```ruby
+#
+# Cookbook Name:: apache
+# Recipe:: default
+#
+# Copyright (c) 2015 The Authors, All Rights Reserved.
+
+include_recipe 'apache::server'
+```
+
+???
+
+We are interested in having the default recipe for our apache cookbook run the contents of the server recipe.
+
+Within the default recipe, define the `include_recipe` method and provide one parameter, which is the name of our recipe as it appears within a run list: cookbook_name::recipe_name.
+
+---
+
+## Lab: Applying the __apache__ __default__ recipe
+
+```bash
+$ sudo chef-client --local-mode -r "recipe[apache]"
+```
+```terminal
+[2015-09-15T15:23:18+00:00] WARN: No config file found or specified on command line, using command line options.
+Starting Chef Client, version 12.3.0
+resolving cookbooks for run list: ["apache"]
+Synchronizing Cookbooks:
+  - apache
+Compiling Cookbooks...
+Converging 0 resources
+
+Running handlers:
+Running handlers complete
+Chef Client finished, 0/0 resources updated in 3.310768509 seconds
+```
+
+???
+
+Use __chef-client__ to locally apply the cookbook named apache. This will load your apache cookbook's default recipe, which in turn loads the apache cookbook's server recipe.
+
+---
+
+## Lab: Commit Your Work
+
+```bash
+$ cd apache
+$ git add .
+$ git commit -m "Default recipe includes the server recipe"
+```
+
+???
+With everything working it is time to commit the latest changes.
+
+---
+
+# Discussion
+
+.right-column[
+* Why would you want to apply more than one recipe at a time?
+]
+--
+.right-column[
+* What are the benefits and drawbacks of using `include_recipe` within a recipe?
+]
+--
+.right-column[
+* Do default values make it easier or harder to learn?
+]
+
+???
+
+Answer these questions. 
+
+With your answers, turn to another person and alternate asking each other asking these questions and sharing your answers.
+
+---
+
+# Q&A
+
+What questions can we help you answer? 
+
+* chef-client
+* local mode
+* run list
+* include_recipe
+---
+# On to [Module 5](Chef for Beginners - Module 5.html)
+<center><img style="width:70%"  src="images/logo.svg"></center>
+    </textarea>
+    <div id="slideshow"></div>
+    <div id="overlay"></div>
+
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js""></script>
+
+    <script type="text/javascript">
+      var hljs = remark.highlighter.engine;
+    </script>
+
+    <script src="terminal.language.js"></script>
+
+	<script src="init-remark.js"></script>
+  </body>
+</html>

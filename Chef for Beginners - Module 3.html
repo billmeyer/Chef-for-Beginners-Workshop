@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chef for Beginners - Module 3</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="chef-for-beginners.css">
+  </head>
+  <body>
+    <textarea id="source">
+name: inverse
+layout: true
+class: center, middle, inverse
+
+---
+
+# Cookbooks
+## Organizing Recipes
+
+---
+layout: false
+
+# Objectives
+
+.right-column[
+After completing this module, you should be able to:
+
+* Modify a recipe
+* Use version control 
+* Generate a Chef cookbook
+* Define a Chef recipe that sets up a web server
+]
+
+???
+
+In this module you will learn how to modify a recipe, use version control, 
+generate a Chef cookbook and define a Chef recipe that sets up a web server.
+
+---
+# Questions You May Have
+
+--
+.right-column[
+* Thinking about the __workstation__ recipe, could we do something like that for a web server?
+]
+--
+.right-column[
+* Is there a way to package up recipes you create with a version number (and maybe a README)?
+]
+--
+.right-column[
+* _I think Chef is able to generate something called a cookbook. Shouldn't we start thinking about some version control so we don't lose all our hard work?_
+]
+
+???
+
+Answers:
+
+1. The recipe that you put together to setup the workstation proved useful--useful enough to see if the same could be done with a webserver. It's a package, a file, and a service. Everything you've already completed. Well, almost everything.
+
+2. Now the request to add version control and a README would definitely make it easier to share the recipes that we create. Without version control we'd have no way to build this software collaboratively or recover our work. Without a README no one would know what the recipe even was suppose to do or what it did.
+
+3. And yes, before we start creating more recipes and cookbooks, we should choose a versioning solution.
+
+---
+
+class: center, middle
+<img style="width:100%"  src="images/Collaboration and Version Control.png">
+
+???
+
+Before we answer that question, let’s talk about collaboration. Usually, none of us work in a vacuum, and it’s important that systems are in place to make collaboration easier.  One such system is versioning.  Versioning will make it easier to share the recipes that we create.
+
+A versioning system should include:
+* A Central Repository into which all the developers publish their work.
+* Each revision should be stored as a new version.
+* For each change, a commit message should be added so that everyone knows what has or has not been changed
+
+---
+
+# Versioning Pros and Cons
+
+--
+
+Saving a copy of the original file as another filename.
+
+```bash
+$ cp setup.rb setup.rb.bak
+```
+???
+Lets explore this first option of renaming the file by adding a quick extension, like 
+in the first example shown here. In this way we can keep working on the original file 
+as we add more features. As a group lets talk about the pros and cons of using this strategy.
+
+--
+or
+
+```bash
+$ cp setup.rb{,.\`date +%Y%m%d%H%M`}
+```
+
+???
+So obviously a single backup won't do. We need backups more often as we are going to 
+be iterating quickly. 
+
+--
+or
+
+```bash
+$ cp setup.rb{,.\`date +%Y%m%d%H%M-$USER`}
+```
+
+???
+We could use the current date and time down to the minute like in the second example. 
+As a group lets talk about the pros and cons of using this strategy.
+
+Would adding the user's name to the end of the file, like in the third example, 
+solve the problems we are facing with other choices? Again what are the pros and 
+cons of this new approach?
+
+---
+class: center, middle
+
+# Git Version Control
+
+__git__ is a distributed revision control system with an emphasis on speed, data integrity, and support for distributed, non-linear workflows. 
+
+We will be using git throughout the rest of this workshop.
+
+<img style="width:60%" src="images/Git-Logo-2Color.png">
+
+???
+How about we use __git__?
+
+What are the pros and cons of this approach?
+
+For the rest of this workshop we will be using git. This may not be the version control software you use on your teams or within your organization and that is alright. Our use of git within this workshop is used solely to demonstrate the use of version control when developing Chef code. When you develop with Chef you are welcome to use the version control system of your choice.
+
+Instructor Note: It is not important that the learners understand and learn all of git during this workshop. It is more important that the learners understand when and where to use version control to save their work. This is about training them on making changes, testing, and then committing their work. Version control is an instrumental piece of the workflow when you adopt Infrastructure as code. There are some benefits of learning and using git because Chef uses git and GitHub to do almost all development of Chef. The majority of the Chef community uses git and GitHub.
+
+---
+
+# Lab Exercise: Install __git__
+
+.right-column[
+* Add the additional policy to `setup.rb`:
+
+>>	The package named __git__ is installed.
+
+* Then apply this recipe with __chef-apply__.
+]
+
+???
+Is git installed? Do we know if it will be installed with every new instance that is setup?
+
+It sounds like we need the tool now to store our cookbook but we also want to define a policy that git is installed on all of our workstations. Update the setup recipe to define the new policy and apply the setup recipe again.
+
+Instructor Note: Allow 5 minutes to complete this exercise.
+
+---
+
+# Lab Exercise: Adding the __git__ Package
+
+`~/setup.rb`
+
+```ruby
+package 'nano'
+package 'vim'
+package 'emacs'
+
+package 'tree'
+*package 'git'
+
+file '/etc/motd' do
+  content 'Property of ...'
+end
+```
+
+???
+
+We add a package resource named 'git' to the setup recipe within our setup recipe.
+
+---
+
+# Lab Exercise: Re-apply the Setup Recipe
+
+```bash
+$ sudo chef-apply setup.rb
+```
+
+```terminal
+Recipe: (chef-apply cookbook)::(chef-apply recipe)
+  * yum_package[nano] action install (up to date)
+  * yum_package[vim] action install (up to date)
+  * yum_package[emacs] action install (up to date)
+  * yum_package[tree] action install (up to date)
+  * yum_package[git] action install
+    <span style="color:green;">- install version 1.7.1-4.el6_7.1 of package git</span>
+  * file[/etc/motd] action create (up to date)
+```
+
+???
+
+Then we use __chef-apply__ to apply our recipe.
+
+---
+
+## Group Exercise: Create a Cookbook
+
+.right-column[
+* How are we going to manage this file?
+* Does it need a README?
+]
+--
+.right-column[
+## Objective:
+&#9744; Use __chef__ (CLI) to generate a cookbook to store our __setup__ recipe.<br>
+&#9744; Add the __workstation__ cookbook to version control.
+]
+
+???
+The setup recipe now installs everything we currently need on our workstation. 
+
+But before throw this recipe file into a directory with our other scripts we 
+should look at a concept in Chef called a cookbook.
+
+What is a cookbook? How do we create one? Let's ask 'chef'.
+
+---
+template: inverse
+
+# What is __chef__?
+
+An executable program that allows you generate cookbooks and cookbook components.
+
+???
+
+In this context, 'chef' is a command, not the company.
+
+What's the best way to learn Chef? Use Chef. We want you to literally run 'chef'.
+
+---
+
+# What can __chef__ do?
+
+```bash
+$ chef --help
+```
+```terminal
+Usage:
+    chef -h/--help
+    chef -v/--version
+    chef command [arguments...] [options...]
+
+
+Available Commands:
+    exec                    Runs the command in context of the embedded ruby
+    env                     Prints environment variables used by ChefDK
+    gem                     Runs the `gem` command in context of the embedded ruby
+*   generate                Generate a new app, cookbook, or component
+    shell-init              Initialize your shell to use ChefDK as your primary ruby
+    install                 Install cookbooks from a Policyfile and generate a locked cookbook set
+    update                  Updates a Policyfile.lock.json with latest run_list and cookbooks
+...
+    undelete                Undo a delete command
+    verify                  Test the embedded ChefDK applications
+```
+???
+
+__chef__ is a command-line application that does quite a few things. The most 
+important thing to us right now is its ability to generate cookbooks and components.
+
+Alright. So 'chef' can generate a cookbook. But what is the purpose of a cookbook? That sounds like we should read the documentation.
+
+---
+
+# Cookbooks
+
+## What is a Chef Cookbook?
+
+--
+.right-column[
+* A Chef Cookbook is the fundamental unit of configuration and policy distribution. 
+]
+--
+.right-column[
+* Each cookbook defines a scenario, such as everything needed to install and configure MySQL, and then it contains all of the components that are required to support that scenario. 
+]
+--
+.right-column[
+* Read the first three paragraphs here: [http://docs.chef.io/cookbooks.html]()
+]
+
+???
+It's important that you learn to read the Chef documentation. Lets look up cookbooks in Chef's documentation. Visit the docs page on cookbooks and read the first three paragraphs.
+
+A cookbook is a structure that contains recipes. It also contains a number of other things--but right now we are most interested in a finding a home for our recipes, giving them a version, and providing a README to help describe them.
+
+---
+
+# What Can __chef generate__ Do?
+
+```bash
+$ chef generate --help
+```
+
+```terminal
+Usage: chef generate GENERATOR [options]
+
+Available generators:
+  app         Generate an application repo
+* cookbook    Generate a single cookbook
+  recipe      Generate a new recipe
+  attribute   Generate an attributes file
+  template    Generate a file template
+  file        Generate a cookbook file
+  lwrp        Generate a lightweight resource/provider
+  repo        Generate a Chef policy repository
+  policyfile  Generate a Policyfile for use with the install/push commands
+  generator   Copy ChefDK's generator cookbook so you can customize it
+```
+  
+???
+
+Lets examine the 'chef generate' command. We can see that the command is capable of generating a large number of different things for us. It looks like if we want to generate a cookbook we're going to need to use 'chef generate cookbook'.
+
+---
+
+# What Can __chef generate cookbook__ Do?
+
+```bash
+$ chef generate cookbook --help
+```
+```terminal
+Usage: chef generate cookbook NAME [options]
+    -C, --copyright COPYRIGHT        Name of the copyright holder - default...
+    -m, --email EMAIL                Email address of the author - defaults...
+    -a, --generator-arg KEY=VALUE    Use to set arbitrary attribute KEY to ...
+    -I, --license LICENSE            all_rights, httpd, mit, gplv2, gplv3 -...
+    -g GENERATOR_COOKBOOK_PATH,      Use GENERATOR_COOKBOOK_PATH for the...
+        --generator-cookbook
+```
+
+???
+
+Lets ask the 'chef generate cookbook' command for help to see how it is used.
+
+To generate a cookbook, all we have to do is provide it with a name.
+
+There are two hard things in Computer Science and one of those is giving something a name.
+
+---
+
+## Group Exercise: Let's Create a Cookbook
+
+```bash
+$ cd ~
+$ chef generate cookbook workstation
+```
+
+```terminal
+Installing Cookbook Gems:
+Compiling Cookbooks...
+Recipe: code_generator::cookbook
+  * directory[/home/bmeyer/workstation] action create
+    <span style="color:green;">- create new directory /home/bmeyer/workstation</span>
+  * template[/home/bmeyer/workstation/metadata.rb] action create_if_missing
+    <span style="color:green;">- create new file /home/bmeyer/workstation/metadata.rb</span>
+    <span style="color:green;">- update content in file /home/bmeyer/workstation/metadata.rb from none to 0c09e4</span>
+    <span style="color:gray;">(diff output suppressed by config)</span>
+  * template[/home/bmeyer/workstation/README.md] action create_if_missing
+    <span style="color:green;">- create new file /home/bmeyer/workstation/README.md</span>
+    <span style="color:green;">- update content in file /home/bmeyer/workstation/README.md from none to 590727</span>
+    <span style="color:gray;">(diff output suppressed by config)</span>
+...
+  * execute[initialize-git] action run
+    <span style="color:green;">- execute git init .</span>
+  * cookbook_file[/home/bmeyer/workstation/.gitignore] action create
+    <span style="color:green;">- create new file /home/bmeyer/workstation/.gitignore</span>
+    <span style="color:green;">- update content in file /home/bmeyer/workstation/.gitignore from none to dd37b2</span>
+    <span style="color:gray;">(diff output suppressed by config)</span>
+```
+???
+We have you covered. Call the cookbook workstation. That's a generic enough name.
+
+We want you to use 'chef generate' to generate a cookbook named workstation.
+
+---
+
+## Group Exercise: The Cookbook Has a __README.md__ file
+
+```bash
+$ tree workstation
+```
+```terminal
+workstation
+├── Berksfile
+├── chefignore
+├── metadata.rb
+*├── README.md
+├── recipes
+│   └── default.rb
+├── spec
+│   ├── spec_helper.rb
+...
+└── test
+    └── integration
+...
+        └── helpers
+            └── serverspec
+                └── spec_helper.rb
+10 directories, 9 files
+```
+
+???
+Aren't you curious what's inside it? Lets take a look with the help of the 'tree' command. If we provide 'tree' with a path we will see all the visible files in the specified directory.
+
+So the chef cookbook generator created an outline of a cookbook with a number of default files and folders. The first one we'll focus on is the README.
+
+---
+
+# README.md
+
+.right-column[
+The description of the cookbook's features written in Markdown.
+
+.footnote[[http://daringfireball.net/projects/markdown/syntax]()]
+]
+
+???
+
+All cookbooks that 'chef' will generate for you will include a default README file. The extension .md means that the file is a markdown file. 
+
+Markdown files are text documents that use various punctuation characters to provide formatting. They are meant to be easily readable by humans and can be easily be rendered as HTML or other formats by computers.
+
+---
+
+## Group Exercise: The Cookbook Has Some Metadata
+
+```bash
+$ tree workstation
+```
+```terminal
+workstation
+├── Berksfile
+├── chefignore
+*├── metadata.rb
+├── README.md
+├── recipes
+│   └── default.rb
+├── spec
+│   ├── spec_helper.rb
+│   └── unit
+│       └── recipes
+│           └── default_spec.rb
+10 directories, 9 files
+```
+???
+
+The cookbook also has a metadata file.
+
+---
+
+# metadata.rb
+
+.right-column[
+* Every cookbook requires a small amount of metadata.
+]
+--
+.right-column[
+* Metadata is stored in a file called `metadata.rb` that lives at the 
+top of each cookbook’s directory.
+
+.footnote[[http://docs.chef.io/config_rb_metadata.html]()]
+]
+
+???
+
+This is a ruby file that contains its own domain specific language (DSL) for describing the details about the cookbook.
+
+---
+
+## Group Exercise: Let's Take a Look at the Metadata
+
+```bash
+$ cat workstation/metadata.rb
+```
+```terminal
+name             'workstation'                                
+maintainer       'The Authors'                                
+maintainer_email 'you@example.com'
+license          'all_rights'                        
+description      'Installs/Configures workstation'
+long_description 'Installs/Configures workstation'           
+version          '0.1.0'
+```
+
+???
+
+If you view the contents of your new cookbook's metadata, you'll see a number of details that help describe the cookbook:
+
+The name of the cookbook, its maintainer, a way to reach them, how the cookbook is licensed, descriptions, and the cookbook's version number.
+
+---
+
+## Group Exercise: The Cookbook Has a Folder for Recipes
+
+```bash
+$ tree workstation
+```
+```terminal
+workstation
+├── Berksfile
+├── chefignore
+├── metadata.rb
+├── README.md
+*├── recipes
+*│   └── default.rb
+├── spec
+│   ├── spec_helper.rb
+│   └── unit
+│       └── recipes
+│           └── default_spec.rb
+10 directories, 9 files
+
+```
+???
+
+The cookbook also has a folder named recipes. This is where we store the recipes in our cookbook. You'll see that the generator created a default recipe in our cookbook. What does it do?
+
+---
+
+## Group Exercise: The Cookbook Has a Default Recipe
+
+```bash
+$ cat workstation/recipes/default.rb
+```
+```ruby
+# Cookbook Name:: workstation
+# Recipe:: default
+#
+# Copyright (c) 2015 The Authors, All Rights Reserved.
+```
+
+???
+
+Looking at the contents of the default recipe you'll find it's empty except for some ruby comments. 
+
+A cookbook doesn't have to have a default recipe but most every cookbook has one. It's called default because when you think of a cookbook, it is probably the recipe that defines the most common configuration policy.
+
+---
+
+## Group Exercise: Move our __setup.rb__ Recipe into the Cookbook
+
+```bash
+$ mv -v setup.rb workstation/recipes/
+`setup.rb' -> `workstation/recipes/setup.rb'
+```
+
+???
+
+From the Home directory, move your setup.rb recipe to the workstation cookbook and place it alongside our default recipe.
+
+---
+
+## Group Exercise: Version Control
+
+.right-column[
+This is a probably a good point to capture the initial state of our cookbook.
+
+## Objective:
+&#9745; Use __chef__ (CLI) to generate a cookbook to store our setup recipe.<br>
+&#9744; Add the __workstation__ cookbook to version control.
+]
+
+???
+Now that we have our cookbook with its README and version number, it's time to start tracking our changes with git.
+---
+## Group Exercise: Move into the Cookbook Directory
+
+```bash
+$ cd workstation
+```
+
+???
+
+Change into the workstation cookbook directory.
+
+---
+
+## Group Exercise: Initialize the Directory as a __git__ Repository
+
+```bash
+$ git init
+```
+```terminal
+Reinitialized existing Git repository in /home/chef/workstation/.git/
+```
+
+???
+
+We want git to start tracking the entire contents of this folder and any content in the subfolders. To do that with git, you need to execute the command 'git init' in the parent directory of the cookbook that you want to start tracking.
+
+You will notice that git will say that the repository has been 'Reinitialized'. This is because the chef cookbook generator detected that we have git installed and automatically initialized the cookbook as a git repository.
+
+---
+
+## Group Exercise: Use __git add__ to Stage Files to be Committed
+
+```bash
+$ git add .
+```
+
+???
+
+Now we need to tell git which files it should start tracking in source control. In our case, we want to add all the files to the repository and we can do that by executing 'git add .' (dot).
+
+This will place all the files into a staging area.
+
+---
+
+# Staging Area
+
+.right-column[
+* The staging area has a file, generally contained in your Git directory, that stores information about what will go into your next commit. 
+
+* It’s sometimes referred to as the “index”, but it’s also common to refer to it as the staging area.
+
+.footnote[[http://git-scm.com/book/en/v2/Getting-Started-Git-Basics]()]
+]
+
+???
+You can think of the staging area as a box in which to put a bunch of items -- like a care package you would send to someone.
+
+Staging files means to put them in the box, but don't close it up because you may add a few things, and don't close it up because you may replace or remove a few things. But put the items in the box because eventually we are going to close that box when it is ready to send it off.
+
+---
+
+## Group Exercise: Use __git status__ to View the Staged Files
+
+```bash
+$ git status
+```
+```terminal
+# On branch master
+#
+# Initial commit
+#
+# Changes to be committed:
+#   (use "git rm --cached <file>..." to unstage)
+#
+#	new file:   .gitignore
+#	new file:   .kitchen.yml
+#	new file:   Berksfile
+#	new file:   README.md
+#	new file:   chefignore
+#	new file:   metadata.rb
+#	new file:   recipes/default.rb
+#	new file:   recipes/setup.rb
+#	new file:   spec/spec_helper.rb
+#	new file:   spec/unit/recipes/default_spec.rb
+#	new file:   test/integration/default/serverspec/default_spec.rb
+#	new file:   test/integration/helpers/serverspec/spec_helper.rb
+#
+```
+
+???
+
+Lets see what changes we have placed in the staging area.
+
+Thinking about our care package example, this is like looking inside the box and taking an inventory, allowing us to figure out if we need to move more things in or remove things we accidently threw in there.
+
+Running `git status` allows us to see in the box. Git reports back to us the changes that will be committed.
+
+Instructor Note: Git helpfully tries to show you the command you can use to remove an item from that box. This is useful if you want to include all items excepts for one or simply manage everything before you commit.
+
+---
+
+## Group Exercise: Use __git commit__ to Save the Staged Changes
+
+```bash
+$ git commit -m "Initial workstation cookbook"
+```
+```terminal
+[master (root-commit) ae6968b] Initial workstation cookbook
+ Committer: ChefDK User &lt;chef@ip-172-31-11-224.ec2.internal&gt;
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name &quot;Your Name&quot;
+    git config --global user.email you@example.com
+
+If the identity used for this commit is wrong, you can fix it with:
+
+    git commit --amend --author='Your Name &lt;you@example.com&gt;'
+
+ 12 files changed, 207 insertions(+), 0 deletions(-)
+ create mode 100644 .gitignore
+ create mode 100644 .kitchen.yml
+ create mode 100644 Berksfile
+ create mode 100644 README.md
+ create mode 100644 chefignore
+ create mode 100644 metadata.rb
+ create mode 100644 recipes/default.rb
+ create mode 100644 recipes/setup.rb
+...
+```
+
+???
+
+If everything that is staged looks correct, then we are ready to commit the changes.
+
+This is like saying we're ready to close the box up.
+
+This is done in git with git commit. We can optionally provide a message on the command-line and that is done with the -m flag and then a string of text that describes that change.
+
+---
+
+# Git Version Control
+
+.right-column[
+* If you use git versioning you should ultimately push the local git repository 
+to a shared remote git repository. 
+
+* In this way others could collaborate with you from a centralized location.
+]
+
+<center><img style="width:70%"  src="images/Git Version Control.png"></center>
+
+???
+git tracks all our commits, all those closed up boxes, locally on the current system. If we wanted to share those commits with other individuals we would need to push those changes to a central repository where we could collaborate with other members of the team.
+---
+## Group Exercise: Move out of the Workstation Cookbook
+
+```bash
+$ cd ~
+```
+???
+Now that we are done adding our workstation cookbook to version control lets return to our home directory.
+---
+# Lab Exercise: Setting up a Web Server
+
+.right-column[
+* Use __chef generate__ to create a cookbook named __apache__.
+* Write and apply a recipe named `server.rb` with the policy:
+	* The package named __httpd__ is installed.
+	* The file named `/var/www/html/index.html` is created with the content `<h1>Hello, world!</h1>`
+	* The service named __httpd__ is started and enabled.
+* Apply the recipe with __chef-apply__.
+* Verify the site is available by running __curl http://localhost__.
+]
+
+???
+
+Now. Here is your latest challenge. Deploying a Web Server with Chef.
+
+Thinking about all that we have accomplished so far that hopefully seems possible. 
+
+We need a cookbook named apache that has a server recipe. Within that server recipe we need to install the appropriate package. Write out an example HTML file, and then start and enable the service.
+
+Then we should apply that recipe and make sure the site is up and running by running a command to visit that site.
+
+So show me it can be done!
+
+Instructor Note: Allow 15 minutes to complete this exercise.
+
+---
+
+# Lab Exercise: Create a Cookbook
+
+```bash
+$ chef generate cookbook apache
+```
+```terminal
+Installing Cookbook Gems:
+Compiling Cookbooks...
+Recipe: code_generator::cookbook
+  * directory[/home/bmeyer/apache] action create
+    <span style="color:green;">- create new directory /home/bmeyer/apache</span>
+  * template[/home/bmeyer/apache/metadata.rb] action create_if_missing
+    <span style="color:green;">- create new file /home/bmeyer/apache/metadata.rb</span>
+    <span style="color:green;">- update content in file /home/bmeyer/apache/metadata.rb from none to 37ed5f</span>
+    <span style="color:gray;">(diff output suppressed by config)</span>
+  * template[/home/bmeyer/apache/README.md] action create_if_missing
+    <span style="color:green;">- create new file /home/bmeyer/apache/README.md</span>
+    <span style="color:green;">- update content in file /home/bmeyer/apache/README.md from none to 5c3d3a</span>
+    <span style="color:gray;">(diff output suppressed by config)</span>
+...
+  * cookbook_file[/home/bmeyer/apache/.gitignore] action create
+    <span style="color:green;">- create new file /home/bmeyer/apache/.gitignore</span>
+    <span style="color:green;">- update content in file /home/bmeyer/apache/.gitignore from none to dd37b2</span>
+    <span style="color:gray;">(diff output suppressed by config)</span>
+```
+
+???
+
+From the Chef home directory, run the command 'chef generate cookbook apache'. This will place the apache cookbook alongside the workstation cookbook.
+
+---
+
+# Lab Exercise: Create a Cookbook
+
+```bash
+$ chef generate recipe apache server
+```
+```terminal
+Installing Cookbook Gems:
+Compiling Cookbooks...
+Recipe: code_generator::recipe
+  * directory[./apache/spec/unit/recipes] action create (up to date)
+  * cookbook_file[./apache/spec/spec_helper.rb] action create_if_missing (up to date)
+  * template[./apache/spec/unit/recipes/server_spec.rb] action create_if_missing
+    <span style="color:green;">- create new file ./apache/spec/unit/recipes/server_spec.rb</span>
+    <span style="color:green;">- update content in file ./apache/spec/unit/recipes/server_spec.rb from none to a43970</span>
+    <span style="color:gray;">(diff output suppressed by config)</span>
+  * template[./apache/recipes/server.rb] action create
+    <span style="color:green;">- create new file ./apache/recipes/server.rb</span>
+    <span style="color:green;">- update content in file ./apache/recipes/server.rb from none to 3d6b92</span>
+    <span style="color:gray;">(diff output suppressed by config)</span>
+```
+???
+Chef generate can also generate our recipe file as well. Running the command `chef generate recipe apache server` it will generate the server recipe within the apache cookbook we created.
+---
+# Lab Exercise: Create the Server Recipe
+
+`~/apache/recipes/server.rb`
+
+```ruby
+package 'httpd'
+
+file '/var/www/html/index.html' do
+  content '<h1>Hello, world!</h1>'
+end
+
+service 'httpd' do
+  action [ :enable, :start ]
+end
+```
+
+???
+
+The server recipe, found at ~/apache/recipes/server.rb, defines the policy:
+* The package named httpd is installed.
+* The file named '/var/www/html/index.html' is created with the content 'Hello, world!'
+The service named httpd is started and enabled.
+
+Instructor Note: The service action defines two actions within a Ruby array. Ruby arrays are ordered, integer-indexed collections of any object. Each element in an array is associated with and referred to by an index.
+
+---
+
+# Lab Exercise: Apply the Server Recipe
+
+```bash
+$ sudo chef-apply apache/recipes/server.rb
+```
+```terminal
+Recipe: (chef-apply cookbook)::(chef-apply recipe)
+  * yum_package[httpd] action install
+    <span style="color:green;">- install version 2.4.6-40.el7.centos of package httpd</span>
+  * file[/var/www/html/index.html] action create
+    <span style="color:green;">- create new file /var/www/html/index.html</span>
+    <span style="color:green;">- update content in file /var/www/html/index.html from none to 17d291</span>
+    <span style="color:gray;">--- /var/www/html/index.html	2016-04-04 09:50:59.758483838 -0500</span>
+    <span style="color:gray;">+++ /var/www/html/.chef-index.html20160404-21732-1o44k9g	2016-04-04 09:50:59.758483838 -0500</span>
+    <span style="color:gray;">@@ -1 +1,2 @@</span>
+    <span style="color:gray;">+<code>&lt;</code>h1<code>&gt;</code>Hello, world!<code>&lt;</code>/h1<code>&gt;</code></span>
+  * service[httpd] action enable
+    <span style="color:green;">- enable service service[httpd]</span>
+  * service[httpd] action start
+    <span style="color:green;">- start service service[httpd]</span>
+```
+
+???
+When applying the recipe with __chef-apply__, you need to specify the partial path to the recipe file within the apache cookbook's recipe folder.
+
+---
+
+# Lab Exercise: Verify Website is Available
+
+```bash
+$ curl localhost
+<h1>Hello, world!</h1>
+```
+
+???
+You already setup apache, which is a web server. So verify that the website is available and returns the content we expect to see.
+
+---
+
+## Group Exercise: Commit Your Work
+
+```bash
+$ cd apache
+$ git init 
+$ git add .
+$ git commit -m "Initial Apache Cookbook"
+```
+
+???
+Now, with everything working it is time to add the apache cookbook to version control.
+
+Move into the apache directory.
+Initialize the cookbook as a git repository.
+Add all the files within the cookbook.
+And commit all the files in the staging area.
+
+---
+
+# Discussion
+
+.right-column[
+* What file would you read first when examining a cookbook?
+]
+--
+.right-column[
+* What other recipes might you include in the __apache__ or __workstation__ cookbook?
+]
+--
+.right-column[
+* Can resources accept multiple actions?
+]
+--
+.right-column[
+* How often would you commit changes with version control?
+]
+
+???
+
+Answer these questions. 
+
+With your answers, turn to another person and alternate asking each other asking these questions and sharing your answers.
+
+---
+
+# Q&A
+
+What questions can we answer for you? 
+
+.right-column[
+* Cookbooks
+* Versions
+* Version control
+]
+---
+# On to [Module 4](Chef for Beginners - Module 4.html)
+<center><img style="width:70%"  src="images/logo.svg"></center>
+    </textarea>
+    <div id="slideshow"></div>
+    <div id="overlay"></div>
+
+    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js""></script>
+
+    <script type="text/javascript">
+      var hljs = remark.highlighter.engine;
+    </script>
+
+    <script src="terminal.language.js"></script>
+
+	<script src="init-remark.js"></script>
+  </body>
+</html>
