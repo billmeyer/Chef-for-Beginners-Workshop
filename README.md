@@ -1,143 +1,91 @@
-# remark
+# Chef for Beginners Workshop
 
-[![Build Status](https://travis-ci.org/gnab/remark.svg?branch=develop)](https://travis-ci.org/gnab/remark)
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=4ADT275DY7JTG)
+This is a repo for developing the Chef for Beginners Workshop.
 
-A simple, in-browser, markdown-driven slideshow tool targeted at people who know their way around HTML and CSS, featuring:
+## Abstract
 
-- Markdown formatting, with smart extensions
-- Presenter mode, with cloned slideshow view
-- Syntax highlighting, supporting a range of languages
-- Slide scaling, thus similar appearance on all devices / resolutions
-- Touch support for smart phones and pads, i.e. swipe to navigate slides
+Chef for Beginners is a comprehensive instructor-led workshop covering the basic architecture of Chef, 
+the use of Chef Development Kit (ChefDK), and associated tools. Development, engineering, and operations 
+staff will learn to use Chef to automate the configuration, deployment, and management of server 
+infrastructure.
 
-Check out [this remark slideshow](http://gnab.github.com/remark) for a brief introduction.
+Participants will also learn how to test their configurations. Each of the core units in this course 
+has hands-on exercises to reinforce the material. At the end of the course, students will have a code 
+repository that can be used and modified to solve real business problems.
 
-To render your Markdown-based slideshow on the fly, checkout [Remarkise](https://gnab.github.io/remark/remarkise).
+## History
 
-### Getting Started
+The Chef for Beginners workshop contains the first five modules from the [Chef Essentials](https://github.com/chef-training/chef-essentials).
+training course and is intended to be instructor-led over a three hour span as opposed to three days like Chef Essentials.
 
-It takes only a few, simple steps to get up and running with remark:
+## Learner Requirements
 
-1. Create a HTML file to contain your slideshow (see below)
-2. Open the HTML file in a decent browser
-3. Edit the Markdown and/or CSS styles as needed, save and refresh!
+Attendees need a network-enabled laptop with a terminal that supports SSH.
 
-Below is a boilerplate HTML file to get you started:
+* Windows 7+ through [Putty](http://www.putty.org/) or [Cygwin with OpenSSH](https://www.cygwin.com/).
 
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Title</title>
-    <meta charset="utf-8">
-    <style>
-      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
-      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
-      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+* Mac OS X 10.11
 
-      body { font-family: 'Droid Serif'; }
-      h1, h2, h3 {
-        font-family: 'Yanone Kaffeesatz';
-        font-weight: normal;
-      }
-      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
-    </style>
-  </head>
-  <body>
-    <textarea id="source">
+* Ubuntu 14.04
 
-class: center, middle
 
-# Title
+It’s best that learners have some familiarity and comfort with the following:
 
----
+* Writing code (of just about any flavor) in a text editor
+* Working on the command line
+* Basic system administration – installing packages, configuring those packages, starting services
 
-# Agenda
+## Agenda
 
 1. Introduction
-2. Deep-dive
-3. ...
+2. Resources
+3. Cookbooks
+4. chef-client
+5. Testing Cookbooks
 
----
+## Workstation Setup
 
-# Introduction
+The first series of modules focus on getting learners engaged with the content as quickly as possible. A workstation is 
+provided to the learners.
 
-    </textarea>
-    <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js">
-    </script>
-    <script>
-      var slideshow = remark.create();
-    </script>
-  </body>
-</html>
+### Amazon Machine Instance
+
+This workstation is currently being managed as a Amazon Machine Instance (AMI). This AMI is managed by Chef through the 
+Training AWS Account.
+
+* Essentials - CentOS 6.7 - 5.0.0 (ami-752b191f)
+
+> The AMI was generated with [Packer](https://github.com/chef-training/chefdk-fundamentals-image) and adheres to the 
+following [policy](https://github.com/chef-training/chefdk-image/blob/master/cookbooks/workstations/recipes/essentials.rb). 
+It is based on a Marketplace AMI so it cannot be made public. If you would like access to this AMI to deliver training 
+please contact [training@chef.io](mailto:training@chef.io) the request that includes your Amazon Account Id.
+
+### Creating the Workstation
+
+> An chef recipe that automates the creation of the workstation can be found in the [ChefDK Image](
+https://github.com/chef-training/chefdk-image/blob/master/cookbooks/workstations/recipes/essentials.rb
+) project
+
+* Installation of ChefDK
+
+* Create a user named 'chef' with the password 'chef'
+
+* Ensure the yum package repository is up-to-date
+
+```
+$ yum update -y
 ```
 
-### Moving On
+* Install editors: vim; emacs; nano.
 
-For more information on using remark, please check out the [wiki](http://github.com/gnab/remark/wiki) pages.
+* Uninstall other tools that they will install: cowsay; tree; and git.
 
-### Real-world remark slideshows
+* Install [Docker on CentOS](https://docs.docker.com/engine/installation/centos/)
 
-On using remark:
+* Allow Password Authentication
 
-- [The Official remark Slideshow](http://gnab.github.com/remark)
-- [Coloured Terminal Listings in remark](http://joshbode.github.com/remark/ansi.html) by [joshbode](https://github.com/joshbode)
+* Disable the iptables service
 
-Other interesting stuff:
+* Disable SELINUX
 
-- [gnab.github.com/editorjs](http://gnab.github.com/editorjs)
-- [judoole.github.com/GroovyBDD](http://judoole.github.com/GroovyBDD)
-- [kjbekkelund.github.com/nith-coffeescript](http://kjbekkelund.github.com/nith-coffeescript)
-- [kjbekkelund.github.com/js-architecture-backbone](http://kjbekkelund.github.com/js-architecture-backbone)
-- [bekkopen.github.com/infrastruktur-som-kode](http://bekkopen.github.com/infrastruktur-som-kode)
-- [ivarconr.github.com/Test-Driven-Web-Development/slides](http://ivarconr.github.com/Test-Driven-Web-Development/slides)
-- [havard.github.com/node.js-intro-norwegian](http://havard.github.com/node.js-intro-norwegian)
-- [mobmad.github.com/js-tdd-erfaringer](http://mobmad.github.com/js-tdd-erfaringer)
-- [torgeir.github.com/busterjs-lightning-talk](http://torgeir.github.com/busterjs-lightning-talk)
-- [roberto.github.com/ruby-sinform-2012](http://roberto.github.com/ruby-sinform-2012)
-- [http://asmeurer.github.io/python3-presentation/slides.html](http://asmeurer.github.io/python3-presentation/slides.html)
-- [Lecture notes using remark](http://ozan.keysan.me/ee361/)
-- [Big Data in Time - Progress and Challenges from Oceanography](http://www.jmlilly.net/talks/bigdata16.html)
-
-### Other systems integrating with remark
-
-- [http://platon.io](http://platon.io)
-- [http://www.markdowner.com](http://www.markdowner.com)
-- [http://remarks.sinaapp.com](http://remarks.sinaapp.com/)
-- [Remarkymark (Remark.js in Middleman)](https://github.com/camerond/remarkymark)
-
-### Contributors
-
-- [kjbekkelund](https://github.com/kjbekkelund)
-- [DanTup](https://github.com/DanTup)
-- [freakboy3742](https://github.com/freakboy3742)
-- [nanoant](https://github.com/nanoant)
-- [gurjeet](https://github.com/gurjeet)
-- [torgeir](https://github.com/torgeir)
-- [junderhill](https://github.com/junderhill)
-- [gureckis](https://github.com/gureckis)
-- [hfukada](https://github.com/hfukada)
-- [danielstankiewicz](https://github.com/danielstankiewicz)
-- [andrewgaul](https://github.com/andrewgaul)
-- [tripu](https://github.com/tripu)
-- [kud](https://github.com/kud)
-- [toenuff](https://github.com/toenuff)
-- [obfusk](https://github.com/obfusk)
-- [trumbitta](https://github.com/trumbitta)
-- [peter50216](https://github.com/peter50216)
-- [mhor](https://github.com/mhor)
-- [roberto](https://github.com/roberto)
-- [camerond](https://github.com/camerond)
-- [avdv](https://github.com/avdv)
-- [WouterSioen](https://github.com/WouterSioen)
-- [tchajed](https://github.com/tchajed)
-- [venthur](https://github.com/venthur)
-- [mathiasbynens](https://github.com/mathiasbynens)
-- [aminb](https://github.com/aminb)
-- [sol](https://github.com/sol)
-
-### License
-
-remark is licensed under the MIT license. See LICENSE for further
-details.
+* Added an ec2 json hints file (content: `{}`) to `/etc/chef/ohai/hints/ec2.json`
