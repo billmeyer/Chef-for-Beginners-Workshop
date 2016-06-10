@@ -53,7 +53,7 @@ provided to the learners.
 This workstation is currently being managed as a Amazon Machine Instance (AMI). This AMI is managed by Chef through the 
 Training AWS Account.
 
-* Essentials - CentOS 6.7 - 5.0.1 (ami-354db658)
+* Essentials - CentOS 6.7 - 5.0.2 (ami-0d4eb560)
 
 > The AMI was generated with [Packer](https://github.com/chef-training/chefdk-fundamentals-image) and adheres to the 
 following [policy](https://github.com/chef-training/chefdk-image/blob/master/cookbooks/workstations/recipes/essentials.rb). 
